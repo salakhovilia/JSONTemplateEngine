@@ -2,6 +2,8 @@ const { rangeFunctionHelper } = require("./helpers");
 const { eachHelper } = require("./helpers");
 const { ifHelper } = require("./helpers");
 const { commentHelper } = require("./helpers");
+const utils = require("./utils");
+const errors = require("./errors");
 
 module.exports = class JSONTemplateEngine {
   constructor() {
@@ -25,18 +27,22 @@ module.exports = class JSONTemplateEngine {
   }
   registerHelper(directive, handler) {
     if (directive in this._helpers) {
-      throw new Error(`${directive} already exist.`);
+      throw new errors.JSONTemplateEngineBaseError(
+        `${directive} already exist.`
+      );
     }
     this._helpers[directive] = handler;
   }
   registerFunctionHelper(directive, handler) {
     if (directive in this._helpersFunctions) {
-      throw new Error(`${directive} already exist.`);
+      throw new errors.JSONTemplateEngineBaseError(
+        `${directive} already exist.`
+      );
     }
     this._helpersFunctions[directive] = handler;
   }
   async parseTemplate(template, data) {
-    const type = this.getTypeArrayOrObject(template);
+    const type = utils.getTypeArrayOrObject(template);
     let result = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
@@ -89,87 +95,43 @@ module.exports = class JSONTemplateEngine {
     const reg = new RegExp("{{(.*?)}}", "g");
     const resultParseValue = value.replace(reg, (...match) => {
       const resultEval = this.evaluateExpression(match[1].trim(), data);
-      return this.stringifyValue(resultEval);
+      return utils.stringifyValue(resultEval);
     });
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
-    const resultParseFunction = await this.replaceAsync(
+    const resultParseFunction = await utils.replaceAsync(
       resultParseValue,
       regFunction,
       async (...match) => {
-        return this.stringifyValue(
+        return utils.stringifyValue(
           await this._helpersFunctions[match[2]](
-            ...match[3].split(",").map(value => this.convertValue(value))
+            ...match[3]
+              .split(",")
+              .map(value => utils.convertStringToValue(value))
           )
         );
       }
     );
-    return this.convertValue(resultParseFunction);
+    return utils.convertStringToValue(resultParseFunction);
   }
   evaluateExpression(expression, data) {
-    const evaluate = new Function(
-      "data",
-      `
+    try {
+      const evaluate = new Function(
+        "data",
+        `
       with (data) {
         return ${expression};
       }`
-    );
-
-    try {
+      );
       return evaluate(data);
     } catch (e) {
-      console.error(e.message);
-    }
-  }
-  convertValue(value) {
-    if (value.length === 0) {
-      return undefined;
-    }
-    if (!isNaN(Number(value))) {
-      return Number(value);
-    }
-    if (value.trim().toLowerCase() === "true") {
-      return true;
-    }
-    if (value.trim().toLowerCase() === "false") {
-      return false;
-    }
-    return this.tryParseJSON(value);
-  }
-  stringifyValue(value) {
-    if (value === undefined || value === null) {
-      return "";
-    }
-    if (typeof value === "object") {
-      return JSON.stringify(value);
-    }
-    return value;
-  }
-  tryParseJSON(jsonString) {
-    try {
-      const o = JSON.parse(jsonString);
-      if (o && typeof o === "object") {
-        return o;
+      if (e instanceof SyntaxError) {
+        throw new errors.JSONTemplateEngineSyntaxError(e.message);
+      } else if (e instanceof Error) {
+        throw new errors.JSONTemplateEngineBaseError(e.message);
       }
-    } catch (e) {}
-
-    return jsonString;
-  }
-  getTypeArrayOrObject(obj) {
-    if (obj instanceof Array) {
-      return "array";
-    } else if (obj instanceof Object) {
-      return "object";
     }
   }
-  async replaceAsync(str, regex, asyncFn) {
-    const promises = [];
-    str.replace(regex, (match, ...args) => {
-      const promise = asyncFn(match, ...args);
-      promises.push(promise);
-    });
-    const data = await Promise.all(promises);
-    return str.replace(regex, () => data.shift());
-  }
+
   async compile(template, data = {}) {
     const proxyData = new Proxy(data, this._handlerProxyData);
     return this.parseTemplate(template, proxyData);
