@@ -1,0 +1,1 @@
+class JSONTemplateEngineBaseError extends Error {}
