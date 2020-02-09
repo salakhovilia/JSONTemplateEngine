@@ -46,7 +46,7 @@ module.exports = class JSONTemplateEngine {
     let result = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
-      if (this._helpers[key] !== undefined) {
+      if (key in this._helpers) {
         const reservedKeysResult = await this._helpers[key](
           template[key],
           data,
@@ -62,7 +62,10 @@ module.exports = class JSONTemplateEngine {
         }
         continue;
       }
-      if (typeof template[key] === "number") {
+      if (
+        typeof template[key] === "number" ||
+        typeof template[key] === "boolean"
+      ) {
         result[key] = template[key];
         continue;
       }
@@ -124,6 +127,7 @@ module.exports = class JSONTemplateEngine {
       );
       return evaluate(data);
     } catch (e) {
+      console.log(expression);
       if (e instanceof SyntaxError) {
         throw new errors.JSONTemplateEngineSyntaxError(e.message);
       } else if (e instanceof Error) {
