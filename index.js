@@ -127,11 +127,14 @@ module.exports = class JSONTemplateEngine {
       );
       return evaluate(data);
     } catch (e) {
-      console.log(expression);
       if (e instanceof SyntaxError) {
-        throw new errors.JSONTemplateEngineSyntaxError(e.message);
+        throw new errors.JSONTemplateEngineSyntaxError(
+          e.message + `: ${expression}`
+        );
       } else if (e instanceof Error) {
-        throw new errors.JSONTemplateEngineBaseError(e.message);
+        throw new errors.JSONTemplateEngineBaseError(
+          e.message + `: ${expression}`
+        );
       }
     }
   }

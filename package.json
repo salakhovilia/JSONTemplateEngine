@@ -1,15 +1,19 @@
 {
   "name": "json-template-engine",
   "version": "1.0.0",
-  "description": "",
+  "description": "Tool for parsing json templates",
   "main": "index.js",
+  "repository": "https://github.com/salahovilia/JSONTemplateEngine.git",
   "scripts": {
-    "start": "node index.js",
     "startTest": "node test.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "json",
+    "template",
+    "parser"
+  ],
+  "author": "Salakhov Ilia",
   "license": "ISC",
   "devDependencies": {
     "prettier": "^1.19.1"

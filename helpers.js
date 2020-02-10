@@ -37,7 +37,13 @@ module.exports.eachHelper = async (template, data, utils) => {
     for (let index = 0; index < values.length; index++) {
       const iteration = { iteration: { value: values[index], index } };
       const tempData = Object.assign(iteration, data);
-      result.push(await utils.parseTemplate(template.iteration, tempData));
+      if (typeof template.iteration === "object") {
+        result.push(await utils.parseTemplate(template.iteration, tempData));
+      } else if (typeof template.iteration === "string") {
+        result.push(await utils.parseValue(template.iteration, tempData));
+      } else {
+        result.push(template.iteration);
+      }
     }
     return result.length ? result : undefined;
   }
