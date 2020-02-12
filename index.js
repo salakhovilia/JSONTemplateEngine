@@ -1,9 +1,9 @@
-const { rangeFunctionHelper } = require("./helpers");
-const { eachHelper } = require("./helpers");
-const { ifHelper } = require("./helpers");
-const { commentHelper } = require("./helpers");
-const utils = require("./utils");
-const errors = require("./errors");
+const { rangeFunctionHelper } = require("./src/helpers");
+const { eachHelper } = require("./src/helpers");
+const { ifHelper } = require("./src/helpers");
+const { commentHelper } = require("./src/helpers");
+const utils = require("./src/utils");
+const errors = require("./src/errors");
 
 module.exports = class JSONTemplateEngine {
   constructor() {
@@ -27,34 +27,30 @@ module.exports = class JSONTemplateEngine {
   }
   registerHelper(directive, handler) {
     if (directive in this._helpers) {
-      throw new errors.JSONTemplateEngineBaseError(
-        `${directive} already exist.`
-      );
+      throw new errors.JSONTemplateEngineBaseError(`${directive} already exist.`);
     }
     this._helpers[directive] = handler;
   }
   registerFunctionHelper(directive, handler) {
     if (directive in this._helpersFunctions) {
-      throw new errors.JSONTemplateEngineBaseError(
-        `${directive} already exist.`
-      );
+      throw new errors.JSONTemplateEngineBaseError(`${directive} already exist.`);
     }
     this._helpersFunctions[directive] = handler;
   }
-  async parseTemplate(template, data) {
+  async parseTemplate(template, data, parseOptions = { helpers: true, values: true }) {
     const type = utils.getTypeArrayOrObject(template);
     let result = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
       if (key in this._helpers) {
-        const reservedKeysResult = await this._helpers[key](
-          template[key],
-          data,
-          {
+        let reservedKeysResult;
+        if (parseOptions.helpers) {
+          reservedKeysResult = await this._helpers[key](template[key], data, {
             parseTemplate: this.parseTemplate.bind(this),
-            parseValue: this.parseValue.bind(this)
-          }
-        );
+            parseValue: this.parseValue.bind(this),
+            parseOptions
+          });
+        }
         if (reservedKeysResult !== undefined) {
           result = reservedKeysResult;
         } else {
@@ -62,22 +58,20 @@ module.exports = class JSONTemplateEngine {
         }
         continue;
       }
-      if (
-        typeof template[key] === "number" ||
-        typeof template[key] === "boolean"
-      ) {
+
+      if (typeof template[key] === "number" || typeof template[key] === "boolean") {
         result[key] = template[key];
         continue;
       }
       if (typeof template[key] === "string") {
-        const resultParseValue = await this.parseValue(template[key], data);
+        const resultParseValue = await this.parseValue(template[key], data, parseOptions);
         if (resultParseValue !== undefined) {
           result[key] = resultParseValue;
         }
         continue;
       }
       if (typeof template[key] === "object") {
-        const resultCompile = await this.parseTemplate(template[key], data);
+        const resultCompile = await this.parseTemplate(template[key], data, parseOptions);
         if (resultCompile) {
           if (type === "object") {
             result[key] = resultCompile;
@@ -94,12 +88,15 @@ module.exports = class JSONTemplateEngine {
       return undefined;
     }
   }
-  async parseValue(value, data) {
-    const reg = new RegExp("{{(.*?)}}", "g");
-    const resultParseValue = value.replace(reg, (...match) => {
-      const resultEval = this.evaluateExpression(match[1].trim(), data);
-      return utils.stringifyValue(resultEval);
-    });
+  async parseValue(value, data, parseOptions = { helpers: true, values: true }) {
+    let resultParseValue = value;
+    if (parseOptions.values) {
+      const reg = new RegExp("{{(.*?)}}", "g");
+      resultParseValue = value.replace(reg, (...match) => {
+        const resultEval = this.evaluateExpression(match[1].trim(), data);
+        return utils.stringifyValue(resultEval);
+      });
+    }
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
     const resultParseFunction = await utils.replaceAsync(
       resultParseValue,
@@ -107,9 +104,7 @@ module.exports = class JSONTemplateEngine {
       async (...match) => {
         return utils.stringifyValue(
           await this._helpersFunctions[match[2]](
-            ...match[3]
-              .split(",")
-              .map(value => utils.convertStringToValue(value))
+            ...match[3].split(",").map(value => utils.convertStringToValue(value))
           )
         );
       }
@@ -128,19 +123,14 @@ module.exports = class JSONTemplateEngine {
       return evaluate(data);
     } catch (e) {
       if (e instanceof SyntaxError) {
-        throw new errors.JSONTemplateEngineSyntaxError(
-          e.message + `: ${expression}`
-        );
+        throw new errors.JSONTemplateEngineSyntaxError(e.message + `: ${expression}`);
       } else if (e instanceof Error) {
-        throw new errors.JSONTemplateEngineBaseError(
-          e.message + `: ${expression}`
-        );
+        throw new errors.JSONTemplateEngineBaseError(e.message + `: ${expression}`);
       }
     }
   }
-
-  async compile(template, data = {}) {
-    const proxyData = new Proxy(data, this._handlerProxyData);
-    return this.parseTemplate(template, proxyData);
+  async compile(template, data = {}, parseOptions = { helpers: true, values: true }) {
+    const proxyData = new Proxy(Object.assign({}, data), this._handlerProxyData);
+    return this.parseTemplate(template, proxyData, parseOptions);
   }
 };

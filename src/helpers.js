@@ -3,20 +3,17 @@ module.exports.commentHelper = async () => {
 };
 
 module.exports.ifHelper = async (template, data, utils) => {
-  const templateCompile = await utils.parseTemplate(template, data);
-  if (
-    templateCompile === undefined ||
-    templateCompile.condition === undefined
-  ) {
+  if (template === undefined || template.condition === undefined) {
     return undefined;
   }
-  if (templateCompile.condition) {
-    if (templateCompile.then) {
-      return templateCompile.then;
+  const condition = await utils.parseValue(template.condition, data);
+  if (condition) {
+    if (template.then) {
+      return await utils.parseTemplate(template.then, data, utils.parseOptions);
     }
   } else {
-    if (templateCompile.else) {
-      return templateCompile.else;
+    if (template.else) {
+      return await utils.parseTemplate(template.else, data, utils.parseOptions);
     }
   }
   return undefined;
@@ -38,9 +35,9 @@ module.exports.eachHelper = async (template, data, utils) => {
       const iteration = { iteration: { value: values[index], index } };
       const tempData = Object.assign(iteration, data);
       if (typeof template.iteration === "object") {
-        result.push(await utils.parseTemplate(template.iteration, tempData));
+        result.push(await utils.parseTemplate(template.iteration, tempData, utils.parseOptions));
       } else if (typeof template.iteration === "string") {
-        result.push(await utils.parseValue(template.iteration, tempData));
+        result.push(await utils.parseValue(template.iteration, tempData, utils.parseOptions));
       } else {
         result.push(template.iteration);
       }
