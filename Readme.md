@@ -87,3 +87,4 @@ const JsonParser = new JSONTemplateEngine();
 JsonParser.registerHelper("#if", ifHelper); // The name of the helper must begin with the symbol "#".
 JsonParser.registerFunctionHelper("#range", rangeFunctionHelper); // The name of the helper must begin with the symbol "#".
 ```
+## Parse Options
