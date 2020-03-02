@@ -1,4 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/salahovilia/JSONTemplateEngine/badge.svg?branch=master)](https://coveralls.io/github/salahovilia/JSONTemplateEngine?branch=master)
+
 # Install
 
 `npm install json-template-engine`
@@ -61,10 +62,7 @@ For example, I will give registration of helpers "range" and "if".
 ```javascript
 const ifHelper = async (template, data, utils) => {
   const templateCompile = await utils.parseTemplate(template, data);
-  if (
-    templateCompile === undefined ||
-    templateCompile.condition === undefined
-  ) {
+  if (templateCompile === undefined || templateCompile.condition === undefined) {
     return undefined;
   }
   if (templateCompile.condition) {
@@ -88,4 +86,5 @@ const JsonParser = new JSONTemplateEngine();
 JsonParser.registerHelper("#if", ifHelper); // The name of the helper must begin with the symbol "#".
 JsonParser.registerFunctionHelper("#range", rangeFunctionHelper); // The name of the helper must begin with the symbol "#".
 ```
+
 ## Parse Options

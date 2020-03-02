@@ -134,6 +134,11 @@ module.exports = class JSONTemplateEngine {
   }
   async compile(template, data = {}, parseOptions = { helpers: true, values: true, exclude: [] }) {
     const proxyData = new Proxy(Object.assign({}, data), this._handlerProxyData);
-    return this.parseTemplate(template, proxyData, parseOptions);
+    const options = {
+      helpers: parseOptions.helpers || true,
+      values: parseOptions.values || true,
+      exclude: parseOptions.exclude || []
+    };
+    return this.parseTemplate(template, proxyData, options);
   }
 };
