@@ -1,3 +1,4 @@
+[![Coverage Status](https://coveralls.io/repos/github/salahovilia/JSONTemplateEngine/badge.svg?branch=master)](https://coveralls.io/github/salahovilia/JSONTemplateEngine?branch=master)
 # Install
 
 `npm install json-template-engine`
