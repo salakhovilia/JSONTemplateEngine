@@ -37,11 +37,14 @@ module.exports = class JSONTemplateEngine {
     }
     this._helpersFunctions[directive] = handler;
   }
-  async parseTemplate(template, data, parseOptions = { helpers: true, values: true }) {
+  async parseTemplate(template, data, parseOptions = { helpers: true, values: true, exclude: [] }) {
     const type = utils.getTypeArrayOrObject(template);
     let result = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
+      if (parseOptions.exclude.includes(key)) {
+        continue;
+      }
       if (key in this._helpers) {
         let reservedKeysResult;
         if (parseOptions.helpers) {
@@ -88,7 +91,7 @@ module.exports = class JSONTemplateEngine {
       return undefined;
     }
   }
-  async parseValue(value, data, parseOptions = { helpers: true, values: true }) {
+  async parseValue(value, data, parseOptions = { helpers: true, values: true, exclude: [] }) {
     let resultParseValue = value;
     if (parseOptions.values) {
       const reg = new RegExp("{{(.*?)}}", "g");
@@ -129,7 +132,7 @@ module.exports = class JSONTemplateEngine {
       }
     }
   }
-  async compile(template, data = {}, parseOptions = { helpers: true, values: true }) {
+  async compile(template, data = {}, parseOptions = { helpers: true, values: true, exclude: [] }) {
     const proxyData = new Proxy(Object.assign({}, data), this._handlerProxyData);
     return this.parseTemplate(template, proxyData, parseOptions);
   }
