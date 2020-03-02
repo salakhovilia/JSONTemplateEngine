@@ -92,27 +92,24 @@ module.exports = class JSONTemplateEngine {
     }
   }
   async parseValue(value, data, parseOptions = { helpers: true, values: true, exclude: [] }) {
-    let resultParseValue = value;
+    const regFunction = /((#.+?)\((.*?)\)).*?/g;
+    let resultParse = await utils.replaceAsync(value, regFunction, async (...match) => {
+      const args = await this.parseValue(match[3], data);
+      return utils.stringifyValue(
+        await this._helpersFunctions[match[2]](
+          ...args.split(",").map(value => utils.convertStringToValue(value))
+        )
+      );
+    });
     if (parseOptions.values) {
       const reg = new RegExp("{{(.*?)}}", "g");
-      resultParseValue = value.replace(reg, (...match) => {
+      resultParse = resultParse.replace(reg, (...match) => {
         const resultEval = this.evaluateExpression(match[1].trim(), data);
         return utils.stringifyValue(resultEval);
       });
     }
-    const regFunction = /((#.+?)\((.*?)\)).*?/g;
-    const resultParseFunction = await utils.replaceAsync(
-      resultParseValue,
-      regFunction,
-      async (...match) => {
-        return utils.stringifyValue(
-          await this._helpersFunctions[match[2]](
-            ...match[3].split(",").map(value => utils.convertStringToValue(value))
-          )
-        );
-      }
-    );
-    return utils.convertStringToValue(resultParseFunction);
+
+    return utils.convertStringToValue(resultParse);
   }
   evaluateExpression(expression, data) {
     try {
