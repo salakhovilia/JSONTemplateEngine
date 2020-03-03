@@ -96,7 +96,7 @@ module.exports = class JSONTemplateEngine {
       const args = await this.parseValue(match[3], data);
       return utils.stringifyValue(
         await this._helpersFunctions[match[2]](
-          ...args.split(",").map(value => utils.convertStringToValue(value))
+          ...args.split(",").map(value => utils.convertStringToValue(value.trim()))
         )
       );
     });
