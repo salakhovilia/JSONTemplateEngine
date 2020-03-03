@@ -133,7 +133,7 @@ module.exports = class JSONTemplateEngine {
       case "string":
         return await this.parseValue(value, data, parseOptions);
       case "object":
-        return this.parseTemplate(value, data, parseOptions);
+        return await this.parseTemplate(value, data, parseOptions);
       default:
         return value;
     }
