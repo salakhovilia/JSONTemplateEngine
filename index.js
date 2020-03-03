@@ -84,14 +84,14 @@ module.exports = class JSONTemplateEngine {
         continue;
       }
     }
-    if (Object.keys(result).length) {
-      return result;
-    } else {
+    if (typeof result === "object" && !Object.keys(result).length) {
       return undefined;
     }
+    return result;
   }
   async parseValue(value, data, parseOptions = { helpers: true, values: true, exclude: [] }) {
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
+    let result;
     let resultParse = await utils.replaceAsync(value, regFunction, async (...match) => {
       const args = await this.parseValue(match[3], data);
       return utils.stringifyValue(
@@ -102,13 +102,12 @@ module.exports = class JSONTemplateEngine {
     });
     if (parseOptions.values) {
       const reg = new RegExp("{{(.*?)}}", "g");
-      resultParse = resultParse.replace(reg, (...match) => {
+      result = resultParse.replace(reg, (...match) => {
         const resultEval = this.evaluateExpression(match[1].trim(), data);
         return utils.stringifyValue(resultEval);
       });
     }
-
-    return utils.convertStringToValue(resultParse);
+    return utils.convertStringToValue(result);
   }
   evaluateExpression(expression, data) {
     try {
