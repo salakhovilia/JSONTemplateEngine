@@ -49,8 +49,7 @@ module.exports = class JSONTemplateEngine {
         let reservedKeysResult;
         if (parseOptions.helpers) {
           reservedKeysResult = await this._helpers[key](template[key], data, {
-            parseTemplate: this.parseTemplate.bind(this),
-            parseValue: this.parseValue.bind(this),
+            parse: this.parse.bind(this),
             parseOptions
           });
         }
@@ -129,6 +128,16 @@ module.exports = class JSONTemplateEngine {
       }
     }
   }
+  async parse(value, data, parseOptions) {
+    switch (typeof value) {
+      case "string":
+        return await this.parseValue(value, data, parseOptions);
+      case "object":
+        return this.parseTemplate(value, data, parseOptions);
+      default:
+        return value;
+    }
+  }
   async compile(template, data = {}, parseOptions = { helpers: true, values: true, exclude: [] }) {
     const proxyData = new Proxy(Object.assign({}, data), this._handlerProxyData);
     const options = {
@@ -136,6 +145,6 @@ module.exports = class JSONTemplateEngine {
       values: parseOptions.values || true,
       exclude: parseOptions.exclude || []
     };
-    return this.parseTemplate(template, proxyData, options);
+    return this.parse(template, proxyData, options);
   }
 };

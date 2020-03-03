@@ -1,6 +1,6 @@
 {
   "name": "json-template-engine",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Tool for parsing json templates",
   "main": "index.js",
   "repository": "https://github.com/salahovilia/JSONTemplateEngine.git",
