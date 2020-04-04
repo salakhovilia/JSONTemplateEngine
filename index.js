@@ -93,7 +93,7 @@ module.exports = class JSONTemplateEngine {
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
     let result;
     let resultParse = await utils.replaceAsync(value, regFunction, async (...match) => {
-      const args = await this.parseValue(match[3], data);
+      const args = String(await this.parseValue(match[3], data));
       return utils.stringifyValue(
         await this._helpersFunctions[match[2]](
           ...args.split(",").map(value => utils.convertStringToValue(value.trim()))
