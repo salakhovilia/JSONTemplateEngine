@@ -8,11 +8,11 @@ module.exports.ifHelper = async (template, data, utils) => {
   }
   const condition = await utils.parse(template.condition, data);
   if (condition) {
-    if (template.then) {
+    if ("then" in template) {
       return await utils.parse(template.then, data, utils.parseOptions);
     }
   } else {
-    if (template.else) {
+    if ("else" in template) {
       return await utils.parse(template.else, data, utils.parseOptions);
     }
   }
