@@ -25,13 +25,21 @@ module.exports = class JSONTemplateEngine {
 
     this.registerFunctionHelper("#range", rangeFunctionHelper);
   }
+  checkDirective(directive) {
+    if (!directive.startsWith("#")) {
+      return "#" + directive;
+    }
+    return true;
+  }
   registerHelper(directive, handler) {
+    directive = this.checkDirective(directive);
     if (directive in this._helpers) {
       throw new errors.JSONTemplateEngineBaseError(`${directive} already exist.`);
     }
     this._helpers[directive] = handler;
   }
   registerFunctionHelper(directive, handler) {
+    directive = this.checkDirective(directive);
     if (directive in this._helpersFunctions) {
       throw new errors.JSONTemplateEngineBaseError(`${directive} already exist.`);
     }
@@ -113,10 +121,9 @@ module.exports = class JSONTemplateEngine {
     try {
       const evaluate = new Function(
         "data",
-        `
-      with (data) {
-        return ${expression};
-      }`
+        `with (data) {
+          return ${expression};
+        }`
       );
       return evaluate(data);
     } catch (e) {

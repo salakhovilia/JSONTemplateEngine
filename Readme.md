@@ -1,5 +1,3 @@
-[![Coverage Status](https://coveralls.io/repos/github/salahovilia/JSONTemplateEngine/badge.svg?branch=master)](https://coveralls.io/github/salahovilia/JSONTemplateEngine?branch=master)
-
 # Install
 
 `npm install json-template-engine`
@@ -22,6 +20,9 @@ const template = {
       values: "#range(3, 0)", // or [0, 1, 2]
       iteration: "foo-{{iteration.value}}-{{iteration.index}}"
     }
+  },
+  excludeField: {
+    notParsed: "{{qwe}}"
   }
 };
 const data = {
@@ -32,7 +33,14 @@ const data = {
 
 const JSONTemplateEngine = require("json-template-engine");
 const JsonParser = new JSONTemplateEngine();
-JsonParser.compile(template, data).then(result => {
+
+const options = {
+  helpers: true, // parse helpers? default true
+  values: true, // parse values? default true
+  exclude: ["excludeField"] // which fields in the object should be excluded (fields will not be parsed), default []
+};
+
+JsonParser.compile(template, data, options).then(result => {
   console.log(result);
 });
 
@@ -61,17 +69,17 @@ For example, I will give registration of helpers "range" and "if".
 
 ```javascript
 const ifHelper = async (template, data, utils) => {
-  const templateCompile = await utils.parseTemplate(template, data);
-  if (templateCompile === undefined || templateCompile.condition === undefined) {
+  if (template === undefined || template.condition === undefined) {
     return undefined;
   }
-  if (templateCompile.condition) {
-    if (templateCompile.then) {
-      return templateCompile.then;
+  const condition = await utils.parse(template.condition, data);
+  if (condition) {
+    if ("then" in template) {
+      return await utils.parse(template.then, data, utils.parseOptions);
     }
   } else {
-    if (templateCompile.else) {
-      return templateCompile.else;
+    if ("else" in template) {
+      return await utils.parse(template.else, data, utils.parseOptions);
     }
   }
   return undefined;

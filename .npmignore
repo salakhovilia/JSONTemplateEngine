@@ -1,5 +1,2 @@
 ./node_modules/
 ./.idea/
-./test.js
-./test.json
-./output.json
