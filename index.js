@@ -29,7 +29,7 @@ module.exports = class JSONTemplateEngine {
     if (!directive.startsWith("#")) {
       return "#" + directive;
     }
-    return true;
+    return directive;
   }
   registerHelper(directive, handler) {
     directive = this.checkDirective(directive);
