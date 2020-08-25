@@ -21,7 +21,7 @@ const template = {
       }
     ]
   },
-  foos: {
+  each: {
     command: "each",
     input: "#range(3, 0)",
     outputs: {
@@ -47,9 +47,9 @@ JsonParser.compile(template, data).then(result => {
 
 /* print result
     {
-      foo: 'bar',
-      foo2: { data: 'foo2-else' },
-      foos: [ 'foo-0-0', 'foo-1-1', 'foo-2-2' ]
+      simpleText: 'bar',
+      condition: { data: 'condition else' },
+      each: [ 'value: 0; index: 0', 'value: 1; index: 1', 'value: 2; index: 2' ]
     }
 */
 ```
@@ -90,5 +90,3 @@ const JsonParser = new JSONTemplateEngine();
 JsonParser.registerHelper("if", ifHelper); // The name of the helper must begin with the symbol "#".
 JsonParser.registerFunctionHelper("range", rangeFunctionHelper); // The name of the helper must begin with the symbol "#".
 ```
-
-## Parse Options
