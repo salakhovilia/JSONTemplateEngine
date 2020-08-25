@@ -1,20 +1,23 @@
-module.exports.replaceAsync = async function replaceAsync(str, regex, asyncFn) {
-  const promises = [];
-  str.replace(regex, (match, ...args) => {
+export async function replaceAsync(str: string, regex: RegExp, asyncFn: any): Promise<string> {
+  const promises: Promise<any>[] = [];
+  str.replace(regex, (match: string, ...args: string[]) => {
     const promise = asyncFn(match, ...args);
     promises.push(promise);
+    return match;
   });
   const data = await Promise.all(promises);
   return str.replace(regex, () => data.shift());
-};
-module.exports.getTypeArrayOrObject = function getTypeArrayOrObject(obj) {
+}
+
+export function getTypeArrayOrObject(obj: any[] | object): "array" | "object" {
   if (obj instanceof Array) {
     return "array";
-  } else if (obj instanceof Object) {
+  } else {
     return "object";
   }
-};
-module.exports.stringifyValue = function stringifyValue(value) {
+}
+
+export function stringifyValue(value: any): string {
   if (value === undefined || value === null) {
     return "";
   }
@@ -22,19 +25,21 @@ module.exports.stringifyValue = function stringifyValue(value) {
     return JSON.stringify(value);
   }
   return value;
-};
-function tryParseJSON(jsonString) {
+}
+
+export function tryParseJSON(jsonString: string): object | string {
   try {
     const o = JSON.parse(jsonString);
     if (o && typeof o === "object") {
       return o;
     }
+    // tslint:disable-next-line:no-empty
   } catch (e) {}
 
   return jsonString;
 }
-module.exports.tryParseJSON = tryParseJSON;
-module.exports.convertStringToValue = function convertStringToValue(value) {
+
+export function convertStringToValue(value: string): any {
   if (value.length === 0) {
     return undefined;
   }
@@ -48,4 +53,4 @@ module.exports.convertStringToValue = function convertStringToValue(value) {
     return false;
   }
   return tryParseJSON(value);
-};
+}
