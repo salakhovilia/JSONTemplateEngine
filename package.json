@@ -1,6 +1,6 @@
 {
   "name": "json-template-engine",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Lightweight tool for parsing json templates",
   "main": "./dist/index.js",
   "files": [
@@ -8,7 +8,7 @@
   ],
   "types": "./dist/index.d.ts",
   "typings": "./dist/index",
-  "repository": "https://github.com/salahovilia/JSONTemplateEngine.git",
+  "repository": "https://github.com/salakhovilia/JSONTemplateEngine.git",
   "scripts": {
     "build": "rollup -c",
     "prepublish": "npm test && npm run build",

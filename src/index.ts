@@ -112,9 +112,15 @@ export class JSONTemplateEngine {
 
   private async parseHelper(template: any, data: any): Promise<any> {
     const input = await this.parse(template.input, data);
-    return this._helpers[template[this.keyHelper]](input, template.outputs, data, {
-      parse: this.parse.bind(this)
-    });
+    return this._helpers[template[this.keyHelper]](
+      input,
+      template.outputs,
+      data,
+      {
+        parse: this.parse.bind(this)
+      },
+      template
+    );
   }
 
   private async parseObject(template: any, data: any): Promise<any> {
