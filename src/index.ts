@@ -2,11 +2,14 @@ import { rangeFunctionHelper } from "./helpers";
 import { eachHelper } from "./helpers";
 import { ifHelper } from "./helpers";
 import { commentHelper } from "./helpers";
-import * as utils from "./utils";
-import * as errors from "./errors";
+import * as _utils from "./utils";
+import * as _errors from "./errors";
 import cloneDeep from "clone-deep";
 
-export class JSONTemplateEngine {
+export const errors = _errors;
+export const utils = _utils;
+
+export default class JSONTemplateEngine {
   private _helpers: { [key: string]: any } = {};
   private _helpersFunctions: { [key: string]: any } = {};
   private _handlerProxyData = {
@@ -71,21 +74,25 @@ export class JSONTemplateEngine {
   private async parseValue(value: string, data: any) {
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
     let result: string;
-    const resultParse = await utils.replaceAsync(value, regFunction, async (...match: string[]) => {
-      const args = String(await this.parseValue(match[3], data));
-      const helperName = match[2];
-      const resultHelper = await this._helpersFunctions[helperName](
-        ...args.split(",").map(e => utils.convertStringToValue(e.trim()))
-      );
-      return utils.stringifyValue(resultHelper);
-    });
+    const resultParse = await _utils.replaceAsync(
+      value,
+      regFunction,
+      async (...match: string[]) => {
+        const args = String(await this.parseValue(match[3], data));
+        const helperName = match[2];
+        const resultHelper = await this._helpersFunctions[helperName](
+          ...args.split(",").map(e => _utils.convertStringToValue(e.trim()))
+        );
+        return _utils.stringifyValue(resultHelper);
+      }
+    );
     const reg = new RegExp("{{(.*?)}}", "g");
     result = resultParse.replace(reg, (...match) => {
       const resultEval = JSONTemplateEngine.evaluateExpression(match[1].trim(), data);
-      return utils.stringifyValue(resultEval);
+      return _utils.stringifyValue(resultEval);
     });
 
-    return utils.convertStringToValue(result);
+    return _utils.convertStringToValue(result);
   }
 
   private static evaluateExpression(expression: string, data: any) {
@@ -124,7 +131,7 @@ export class JSONTemplateEngine {
   }
 
   private async parseObject(template: any, data: any): Promise<any> {
-    const type = utils.getTypeArrayOrObject(template);
+    const type = _utils.getTypeArrayOrObject(template);
     const result: any = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
