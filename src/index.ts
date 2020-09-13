@@ -80,6 +80,9 @@ export default class JSONTemplateEngine {
       async (...match: string[]) => {
         const args = String(await this.parseValue(match[3], data));
         const helperName = match[2];
+        if (!(helperName in this._helpersFunctions)) {
+          throw new errors.JSONTemplateEngineBaseError(`${helperName} not found`);
+        }
         const resultHelper = await this._helpersFunctions[helperName](
           ...args.split(",").map(e => _utils.convertStringToValue(e.trim()))
         );
@@ -118,9 +121,15 @@ export default class JSONTemplateEngine {
   }
 
   private async parseHelper(template: any, data: any): Promise<any> {
-    const input = await this.parse(template.input, data);
+    if (!("inputs" in template)) {
+      throw new errors.JSONTemplateEngineBaseError("Inputs not found");
+    }
+    if (!("outputs" in template)) {
+      throw new errors.JSONTemplateEngineBaseError("Outputs not found");
+    }
+    const inputs = await this.parse(template.inputs, data);
     return this._helpers[template[this.keyHelper]](
-      input,
+      inputs,
       template.outputs,
       data,
       {

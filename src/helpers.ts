@@ -4,6 +4,11 @@ export async function commentHelper() {
   return undefined;
 }
 
+export interface IHelperInput {
+  name: string;
+  value: any;
+}
+
 export interface IHelperOutput {
   name: string;
   template: any;
@@ -14,15 +19,16 @@ export interface IUtils {
 }
 
 export async function ifHelper(
-  condition: any,
+  inputs: IHelperInput[],
   outputs: IHelperOutput[],
   data: any,
   utils: IUtils
 ): Promise<any> {
+  const condition = inputs.find(input => input.name === "condition");
   if (condition === undefined || outputs === undefined) {
     return undefined;
   }
-  const outputName = condition ? "then" : "else";
+  const outputName = condition.value ? "then" : "else";
   const output = outputs.find(e => e.name === outputName);
   if (output) {
     return await utils.parse(output.template, data);
@@ -31,19 +37,20 @@ export async function ifHelper(
 }
 
 export async function eachHelper(
-  input: any,
+  inputs: IHelperInput[],
   outputs: IHelperOutput,
   data: any,
   utils: IUtils
 ): Promise<any> {
-  if (input === undefined || outputs === undefined) {
+  const sequence = inputs.find(input => input.name === "values");
+  if (sequence === undefined || outputs === undefined) {
     return undefined;
   }
-  if (!Array.isArray(input)) {
+  if (!Array.isArray(sequence.value)) {
     throw new JSONTemplateEngineSyntaxError("Input should be an array");
   }
   let values = [];
-  values = Object.assign([], input);
+  values = Object.assign([], sequence.value);
   if (values) {
     const result = [];
     for (let index = 0; index < values.length; index++) {

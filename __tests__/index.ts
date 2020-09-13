@@ -55,7 +55,12 @@ describe("Base compile values", () => {
     expect(
       testCommandEngine.compile({
         testCommand: "if",
-        input: true,
+        inputs: [
+          {
+            name: "condition",
+            value: true
+          }
+        ],
         outputs: [{ name: "then", template: "test" }]
       })
     ).resolves.toBe("test");
@@ -72,7 +77,12 @@ describe("if helper", () => {
       templateEngine.compile(
         {
           command: "if",
-          input: true,
+          inputs: [
+            {
+              name: "condition",
+              value: true
+            }
+          ],
           outputs: [{ name: "then", template: "isThen" }]
         },
         data
@@ -84,7 +94,12 @@ describe("if helper", () => {
       templateEngine.compile(
         {
           command: "if",
-          input: false,
+          inputs: [
+            {
+              name: "condition",
+              value: false
+            }
+          ],
           outputs: [
             { name: "then", template: "isThen" },
             { name: "else", template: "isFalse" }
@@ -99,7 +114,12 @@ describe("if helper", () => {
       templateEngine.compile(
         {
           command: "if",
-          input: "{{state}}",
+          inputs: [
+            {
+              name: "condition",
+              value: "{{state}}"
+            }
+          ],
           outputs: [
             { name: "then", template: "isThen" },
             { name: "else", template: "isFalse" }
@@ -114,7 +134,12 @@ describe("if helper", () => {
       templateEngine.compile(
         {
           command: "if",
-          input: "{{state}}",
+          inputs: [
+            {
+              name: "condition",
+              value: "{{state}}"
+            }
+          ],
           outputs: [
             { name: "then", template: "state is {{state}}" },
             { name: "else", template: "state is {{state}}" }
@@ -132,7 +157,12 @@ describe("each helper", () => {
     expect(
       templateEngine.compile({
         command: "each",
-        input: [0, 1, 2],
+        inputs: [
+          {
+            name: "values",
+            value: [0, 1, 2]
+          }
+        ],
         outputs: "index: {{iteration.index}}; value: {{iteration.value}}"
       })
     ).resolves.toEqual(["index: 0; value: 0", "index: 1; value: 1", "index: 2; value: 2"]);
@@ -142,7 +172,12 @@ describe("each helper", () => {
       templateEngine.compile(
         {
           command: "each",
-          input: 123,
+          inputs: [
+            {
+              name: "values",
+              value: 123
+            }
+          ],
           outputs: "index: {{iteration.index}}; value: {{iteration.value}}"
         },
         {}
@@ -154,7 +189,12 @@ describe("each helper", () => {
     expect(
       templateEngine.compile({
         command: "each",
-        input: "#range(3)",
+        inputs: [
+          {
+            name: "values",
+            value: "#range(3)"
+          }
+        ],
         outputs: "index: {{iteration.index}}; value: {{iteration.value}}"
       })
     ).resolves.toEqual(["index: 0; value: 0", "index: 1; value: 1", "index: 2; value: 2"]);

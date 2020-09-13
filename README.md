@@ -9,7 +9,12 @@ const template = {
   simpleText: "bar",
   condition: {
     command: "if",
-    input: "{{condition.enable}}",
+    inputs: [
+      {
+        name:"condition",
+        value: "{{condition.enable}}"
+      }
+    ],
     outputs: [
       {
         name: "then",
@@ -23,7 +28,12 @@ const template = {
   },
   each: {
     command: "each",
-    input: "#range(3, 0)",
+    inputs: [
+      {
+          name: "values",
+          value: "#range(3, 0)"
+      }
+    ],
     outputs: {
       name: "iteration",
       template: "value: {{iteration.value}}; index: {{iteration.index}}"
@@ -69,11 +79,12 @@ You can register by calling the methods
 For example, I will give registration of helpers "range" and "if".
 
 ```javascript
-const ifHelper = async (condition, outputs, data, utils) => {
+const ifHelper = async (inputs, outputs, data, utils) => {
+    const condition = inputs.find(input => input.name === "condition");
     if (condition === undefined || outputs === undefined) {
-    return undefined;
+       return undefined;
     }
-    const outputName = condition ? "then" : "else";
+    const outputName = condition.value ? "then" : "else";
     const output = outputs.find(e => e.name === outputName);
     if (output) {
       return await utils.parse(output.template, data);
