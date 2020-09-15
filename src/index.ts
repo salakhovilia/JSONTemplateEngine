@@ -145,15 +145,14 @@ export default class JSONTemplateEngine {
 
     for (const key of Object.keys(template)) {
       const resultCompile = await this.parse(template[key], data);
-      if (type === "array") {
-        result.push(resultCompile);
-      } else {
-        result[key] = resultCompile;
+      if (resultCompile !== undefined) {
+        if (type === "array") {
+          result.push(resultCompile);
+        } else {
+          result[key] = resultCompile;
+        }
       }
     }
-    // if (typeof result === "object" && !Object.keys(result).length) {
-    //   return undefined;
-    // }
     return result;
   }
 }
