@@ -38,7 +38,7 @@ export async function ifHelper(
 
 export async function eachHelper(
   inputs: IHelperInput[],
-  outputs: IHelperOutput,
+  outputs: IHelperOutput[],
   data: any,
   utils: IUtils
 ): Promise<any> {
@@ -47,8 +47,15 @@ export async function eachHelper(
     return undefined;
   }
   if (!Array.isArray(sequence.value)) {
-    throw new JSONTemplateEngineSyntaxError("Input should be an array");
+    throw new JSONTemplateEngineSyntaxError(
+      "Input should be an array, received: " + sequence.value
+    );
   }
+  const output = outputs.find(outputPredicate => outputPredicate.name === "iteration");
+  if (!output) {
+    return;
+  }
+
   let values = [];
   values = Object.assign([], sequence.value);
   if (values) {
@@ -56,7 +63,7 @@ export async function eachHelper(
     for (let index = 0; index < values.length; index++) {
       const iteration = { iteration: { value: values[index], index } };
       const tempData = Object.assign(iteration, data);
-      result.push(await utils.parse(outputs, tempData));
+      result.push(await utils.parse(output.template, tempData));
     }
     return result.length ? result : undefined;
   }

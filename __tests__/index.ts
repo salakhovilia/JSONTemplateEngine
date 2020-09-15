@@ -163,7 +163,12 @@ describe("each helper", () => {
             value: [0, 1, 2]
           }
         ],
-        outputs: "index: {{iteration.index}}; value: {{iteration.value}}"
+        outputs: [
+          {
+            name: "iteration",
+            template: "index: {{iteration.index}}; value: {{iteration.value}}"
+          }
+        ]
       })
     ).resolves.toEqual(["index: 0; value: 0", "index: 1; value: 1", "index: 2; value: 2"]);
   });
@@ -178,7 +183,12 @@ describe("each helper", () => {
               value: 123
             }
           ],
-          outputs: "index: {{iteration.index}}; value: {{iteration.value}}"
+          outputs: [
+            {
+              name: "iteration",
+              template: "index: {{iteration.index}}; value: {{iteration.value}}"
+            }
+          ]
         },
         {}
       )
@@ -187,16 +197,26 @@ describe("each helper", () => {
 
   test("should be compile input range helper function", () => {
     expect(
-      templateEngine.compile({
-        command: "each",
-        inputs: [
-          {
-            name: "values",
-            value: "#range(3)"
-          }
-        ],
-        outputs: "index: {{iteration.index}}; value: {{iteration.value}}"
-      })
+      templateEngine.compile(
+        {
+          command: "each",
+          inputs: [
+            {
+              name: "values",
+              value: "#range({{max}})"
+            }
+          ],
+          outputs: [
+            {
+              name: "iteration",
+              template: "index: {{iteration.index}}; value: {{iteration.value}}"
+            }
+          ]
+        },
+        {
+          max: 3
+        }
+      )
     ).resolves.toEqual(["index: 0; value: 0", "index: 1; value: 1", "index: 2; value: 2"]);
   });
 });
