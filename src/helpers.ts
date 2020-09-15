@@ -63,7 +63,10 @@ export async function eachHelper(
     for (let index = 0; index < values.length; index++) {
       const iteration = { iteration: { value: values[index], index } };
       const tempData = Object.assign(iteration, data);
-      result.push(await utils.parse(output.template, tempData));
+      const resultTemplate = await utils.parse(output.template, tempData);
+      if (resultTemplate !== undefined) {
+        result.push(resultTemplate);
+      }
     }
     return result.length ? result : undefined;
   }
