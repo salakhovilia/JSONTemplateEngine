@@ -4,7 +4,6 @@ import { ifHelper } from "./helpers";
 import { commentHelper } from "./helpers";
 import * as _utils from "./utils";
 import * as _errors from "./errors";
-import cloneDeep from "clone-deep";
 
 export const errors = _errors;
 export const utils = _utils;
@@ -53,7 +52,7 @@ export default class JSONTemplateEngine {
   }
 
   async compile(template: any, data = {}) {
-    const proxyData = new Proxy(cloneDeep(data), this._handlerProxyData);
+    const proxyData = new Proxy(data, this._handlerProxyData);
     return this.parse(template, proxyData);
   }
 
