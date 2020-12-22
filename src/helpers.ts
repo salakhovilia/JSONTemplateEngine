@@ -1,4 +1,5 @@
 import { JSONTemplateEngineSyntaxError } from "./errors";
+import * as path from "path";
 
 export async function commentHelper() {
   return undefined;
@@ -15,7 +16,8 @@ export interface IHelperOutput {
 }
 
 export interface IUtils {
-  parse(template: any, data: any): Promise<any>;
+  parse(template: any, data: any, path: string): Promise<any>;
+  path: string;
 }
 
 export async function ifHelper(
@@ -31,7 +33,7 @@ export async function ifHelper(
   const outputName = condition.value ? "then" : "else";
   const output = outputs.find(e => e.name === outputName);
   if (output) {
-    return await utils.parse(output.template, data);
+    return await utils.parse(output.template, data, utils.path + "/" + output.name);
   }
   return undefined;
 }
@@ -48,7 +50,7 @@ export async function eachHelper(
   }
   if (!Array.isArray(sequence.value)) {
     throw new JSONTemplateEngineSyntaxError(
-      "Input should be an array, received: " + sequence.value
+      "Input should be an array, received: " + sequence.value + ". Path: " + utils.path
     );
   }
   const output = outputs.find(outputPredicate => outputPredicate.name === "iteration");
@@ -63,7 +65,11 @@ export async function eachHelper(
     for (let index = 0; index < values.length; index++) {
       const iteration = { iteration: { value: values[index], index } };
       const tempData = Object.assign(iteration, data);
-      const resultTemplate = await utils.parse(output.template, tempData);
+      const resultTemplate = await utils.parse(
+        output.template,
+        tempData,
+        utils.path + "/" + output.name
+      );
       if (resultTemplate !== undefined) {
         result.push(resultTemplate);
       }

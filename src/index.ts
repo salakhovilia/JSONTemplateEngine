@@ -53,34 +53,34 @@ export default class JSONTemplateEngine {
 
   async compile(template: any, data = {}) {
     const proxyData = new Proxy(data, this._handlerProxyData);
-    return this.parse(template, proxyData);
+    return this.parse(template, proxyData, "");
   }
 
-  private async parse(value: any, data: any): Promise<any> {
+  private async parse(value: any, data: any, path: string = ""): Promise<any> {
     switch (typeof value) {
       case "string":
-        return this.parseValue(value, data);
+        return await this.parseValue(value, data, path);
       case "object":
         if (this.isHelper(value)) {
-          return this.parseHelper(value, data);
+          return await this.parseHelper(value, data, path);
         }
-        return this.parseObject(value, data);
+        return await this.parseObject(value, data, path);
       default:
         return value;
     }
   }
 
-  private async parseValue(value: string, data: any) {
+  private async parseValue(value: string, data: any, path: string) {
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
     let result: string;
     const resultParse = await _utils.replaceAsync(
       value,
       regFunction,
       async (...match: string[]) => {
-        const args = String(await this.parseValue(match[3], data));
+        const args = String(await this.parseValue(match[3], data, path));
         const helperName = match[2];
         if (!(helperName in this._helpersFunctions)) {
-          throw new errors.JSONTemplateEngineBaseError(`${helperName} not found`);
+          throw new errors.JSONTemplateEngineBaseError(`${helperName} not found in ${path}`);
         }
         const resultHelper = await this._helpersFunctions[helperName](
           ...args.split(",").map(e => _utils.convertStringToValue(e.trim()))
@@ -90,14 +90,14 @@ export default class JSONTemplateEngine {
     );
     const reg = new RegExp("{{(.*?)}}", "g");
     result = resultParse.replace(reg, (...match) => {
-      const resultEval = JSONTemplateEngine.evaluateExpression(match[1].trim(), data);
+      const resultEval = JSONTemplateEngine.evaluateExpression(match[1].trim(), data, path);
       return _utils.stringifyValue(resultEval);
     });
 
     return _utils.convertStringToValue(result);
   }
 
-  private static evaluateExpression(expression: string, data: any) {
+  private static evaluateExpression(expression: string, data: any, path: string) {
     try {
       const evaluate = new Function(
         "data",
@@ -108,9 +108,9 @@ export default class JSONTemplateEngine {
       return evaluate(data);
     } catch (e) {
       if (e instanceof SyntaxError || e instanceof ReferenceError) {
-        throw new errors.JSONTemplateEngineSyntaxError(e.message + `: ${expression}`);
+        throw new errors.JSONTemplateEngineSyntaxError(e.message + `: ${expression} in ${path}`);
       } else if (e instanceof Error) {
-        throw new errors.JSONTemplateEngineBaseError(e.message + `: ${expression}`);
+        throw new errors.JSONTemplateEngineBaseError(e.message + `: ${expression} in ${path}`);
       }
     }
   }
@@ -119,31 +119,34 @@ export default class JSONTemplateEngine {
     return this.keyHelper in template && template[this.keyHelper] in this._helpers;
   }
 
-  private async parseHelper(template: any, data: any): Promise<any> {
+  private async parseHelper(template: any, data: any, path: string): Promise<any> {
+    const newPath = path + "/" + template[this.keyHelper];
     if (!("inputs" in template)) {
-      throw new errors.JSONTemplateEngineBaseError("Inputs not found");
+      throw new errors.JSONTemplateEngineBaseError(`Inputs not found. Path ${newPath}`);
     }
     if (!("outputs" in template)) {
-      throw new errors.JSONTemplateEngineBaseError("Outputs not found");
+      throw new errors.JSONTemplateEngineBaseError(`Outputs not found. Path: ${newPath}`);
     }
-    const inputs = await this.parse(template.inputs, data);
-    return this._helpers[template[this.keyHelper]](
+    const inputs = await this.parse(template.inputs, data, newPath);
+    return await this._helpers[template[this.keyHelper]](
       inputs,
       template.outputs,
       data,
       {
-        parse: this.parse.bind(this)
+        parse: this.parse.bind(this),
+        path: newPath
       },
       template
     );
   }
 
-  private async parseObject(template: any, data: any): Promise<any> {
+  private async parseObject(template: any, data: any, path: string): Promise<any> {
     const type = _utils.getTypeArrayOrObject(template);
     const result: any = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
-      const resultCompile = await this.parse(template[key], data);
+      const newPath = path + "/" + key;
+      const resultCompile = await this.parse(template[key], data, newPath);
       if (resultCompile !== undefined) {
         if (type === "array") {
           result.push(resultCompile);
