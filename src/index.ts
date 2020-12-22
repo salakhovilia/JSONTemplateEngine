@@ -8,7 +8,7 @@ import * as _errors from "./errors";
 export const errors = _errors;
 export const utils = _utils;
 
-export default class JSONTemplateEngine {
+export class JSONTemplateEngine {
   private _helpers: { [key: string]: any } = {};
   private _helpersFunctions: { [key: string]: any } = {};
   private _handlerProxyData = {
