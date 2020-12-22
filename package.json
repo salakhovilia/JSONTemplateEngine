@@ -1,6 +1,6 @@
 {
   "name": "json-template-engine",
-  "version": "2.1.7",
+  "version": "2.2.0",
   "description": "Lightweight tool for parsing json templates",
   "main": "./dist/index.js",
   "files": [

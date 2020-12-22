@@ -1,4 +1,4 @@
-import JSONTemplateEngine from "../src";
+import { JSONTemplateEngine } from "../src";
 
 describe("Base compile values", () => {
   const data = {
