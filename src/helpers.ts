@@ -1,5 +1,4 @@
 import { JSONTemplateEngineSyntaxError } from "./errors";
-import * as path from "path";
 
 export async function commentHelper() {
   return undefined;
