@@ -51,18 +51,18 @@ export class JSONTemplateEngine {
     this._helpersFunctions[directive] = handler;
   }
 
-  async compile(template: any, data = {}) {
+  async compile(template: any, data = {}, ...args: any[]) {
     const proxyData = new Proxy(data, this._handlerProxyData);
-    return this.parse(template, proxyData, "");
+    return this.parse(template, proxyData, "", ...args);
   }
 
-  private async parse(value: any, data: any, path: string = ""): Promise<any> {
+  private async parse(value: any, data: any, path: string = "", ...args: any[]): Promise<any> {
     switch (typeof value) {
       case "string":
         return await this.parseValue(value, data, path);
       case "object":
         if (this.isHelper(value)) {
-          return await this.parseHelper(value, data, path);
+          return await this.parseHelper(value, data, path, ...args);
         }
         return await this.parseObject(value, data, path);
       default:
@@ -119,7 +119,7 @@ export class JSONTemplateEngine {
     return this.keyHelper in template && template[this.keyHelper] in this._helpers;
   }
 
-  private async parseHelper(template: any, data: any, path: string): Promise<any> {
+  private async parseHelper(template: any, data: any, path: string, ...args: any[]): Promise<any> {
     const newPath = path + "/" + template[this.keyHelper];
     if (!("inputs" in template)) {
       throw new errors.JSONTemplateEngineBaseError(`Inputs not found. Path ${newPath}`);
@@ -136,7 +136,8 @@ export class JSONTemplateEngine {
         parse: this.parse.bind(this),
         path: newPath
       },
-      template
+      template,
+      ...args
     );
   }
 
