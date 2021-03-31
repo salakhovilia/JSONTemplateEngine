@@ -15,7 +15,7 @@ export interface IHelperOutput {
 }
 
 export interface IUtils {
-  parse(template: any, data: any, path: string): Promise<any>;
+  parse(template: any, data: any, path: string, ...args: any[]): Promise<any>;
   path: string;
 }
 
@@ -23,7 +23,8 @@ export async function ifHelper(
   inputs: IHelperInput[],
   outputs: IHelperOutput[],
   data: any,
-  utils: IUtils
+  utils: IUtils,
+  ...args: any[]
 ): Promise<any> {
   const condition = inputs.find(input => input.name === "condition");
   if (condition === undefined || outputs === undefined) {
@@ -32,7 +33,7 @@ export async function ifHelper(
   const outputName = condition.value ? "then" : "else";
   const output = outputs.find(e => e.name === outputName);
   if (output) {
-    return await utils.parse(output.template, data, utils.path + "/" + output.name);
+    return await utils.parse(output.template, data, utils.path + "/" + output.name, ...args);
   }
   return undefined;
 }
@@ -41,7 +42,8 @@ export async function eachHelper(
   inputs: IHelperInput[],
   outputs: IHelperOutput[],
   data: any,
-  utils: IUtils
+  utils: IUtils,
+  ...args: any[]
 ): Promise<any> {
   const sequence = inputs.find(input => input.name === "values");
   if (sequence === undefined || outputs === undefined) {
@@ -57,7 +59,7 @@ export async function eachHelper(
     return;
   }
 
-  let values = [];
+  let values: any[];
   values = Object.assign([], sequence.value);
   if (values) {
     const result = [];
@@ -67,7 +69,8 @@ export async function eachHelper(
       const resultTemplate = await utils.parse(
         output.template,
         tempData,
-        utils.path + "/" + output.name
+        utils.path + "/" + output.name,
+        ...args
       );
       if (resultTemplate !== undefined) {
         result.push(resultTemplate);
