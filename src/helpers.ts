@@ -5,6 +5,7 @@ export type IHandlerHelper = (
   outputs: IHelperOutput[],
   data: any,
   utils: IUtils,
+  context: any,
   ...args: any[]
 ) => any;
 
@@ -32,6 +33,7 @@ export async function ifHelper(
   outputs: IHelperOutput[],
   data: any,
   utils: IUtils,
+  context: any,
   ...args: any[]
 ): Promise<any> {
   const condition = inputs.find(input => input.name === "condition");
@@ -51,6 +53,7 @@ export async function eachHelper(
   outputs: IHelperOutput[],
   data: any,
   utils: IUtils,
+  context: any,
   ...args: any[]
 ): Promise<any> {
   const sequence = inputs.find(input => input.name === "values");

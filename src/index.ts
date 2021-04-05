@@ -5,6 +5,7 @@ import { commentHelper } from "./helpers";
 import * as _utils from "./utils";
 import * as _errors from "./errors";
 
+export { IHandlerHelper, IHelperInput, IHelperOutput, IUtils } from "./helpers";
 export const errors = _errors;
 export const utils = _utils;
 
@@ -59,25 +60,25 @@ export class JSONTemplateEngine {
   private async parse(value: any, data: any, path: string = "", ...args: any[]): Promise<any> {
     switch (typeof value) {
       case "string":
-        return await this.parseValue(value, data, path);
+        return await this.parseValue(value, data, path, ...args);
       case "object":
         if (this.isHelper(value)) {
           return await this.parseHelper(value, data, path, ...args);
         }
-        return await this.parseObject(value, data, path);
+        return await this.parseObject(value, data, path, ...args);
       default:
         return value;
     }
   }
 
-  private async parseValue(value: string, data: any, path: string) {
+  private async parseValue(value: string, data: any, path: string, ...argsContext: any[]) {
     const regFunction = /((#.+?)\((.*?)\)).*?/g;
     let result: string;
     const resultParse = await _utils.replaceAsync(
       value,
       regFunction,
       async (...match: string[]) => {
-        const args = String(await this.parseValue(match[3], data, path));
+        const args = String(await this.parseValue(match[3], data, path, argsContext));
         const helperName = match[2];
         if (!(helperName in this._helpersFunctions)) {
           throw new errors.JSONTemplateEngineBaseError(`${helperName} not found in ${path}`);
@@ -141,13 +142,13 @@ export class JSONTemplateEngine {
     );
   }
 
-  private async parseObject(template: any, data: any, path: string): Promise<any> {
+  private async parseObject(template: any, data: any, path: string, ...args: any[]): Promise<any> {
     const type = _utils.getTypeArrayOrObject(template);
     const result: any = type === "array" ? [] : {};
 
     for (const key of Object.keys(template)) {
       const newPath = path + "/" + key;
-      const resultCompile = await this.parse(template[key], data, newPath);
+      const resultCompile = await this.parse(template[key], data, newPath, ...args);
       if (resultCompile !== undefined) {
         if (type === "array") {
           result.push(resultCompile);
