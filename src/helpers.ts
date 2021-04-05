@@ -1,5 +1,13 @@
 import { JSONTemplateEngineSyntaxError } from "./errors";
 
+export type IHandlerHelper = (
+  inputs: IHelperInput[],
+  outputs: IHelperOutput[],
+  data: any,
+  utils: IUtils,
+  ...args: any[]
+) => any;
+
 export async function commentHelper() {
   return undefined;
 }

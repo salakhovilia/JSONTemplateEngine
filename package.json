@@ -1,6 +1,6 @@
 {
   "name": "json-template-engine",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "Lightweight tool for parsing json templates",
   "main": "./dist/json-template-engine.cjs.js",
   "module": "./dist/json-template-engine.esm.js",

@@ -50,6 +50,22 @@ describe("Base compile values", () => {
       })
     ).resolves.toBe("test");
   });
+  test("should be send additional context to helpers", () => {
+    templateEngine.registerHelper("test", (a, b, c, u, template, args) => {
+      expect(args).toBe(1);
+      return "test";
+    });
+
+    templateEngine.compile(
+      {
+        command: "test",
+        inputs: [],
+        outputs: []
+      },
+      {},
+      1
+    );
+  });
   test("should be change 'command' to 'testCommand'", () => {
     const testCommandEngine = new JSONTemplateEngine({ keyHelper: "testCommand" });
     expect(

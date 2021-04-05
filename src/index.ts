@@ -1,4 +1,4 @@
-import { rangeFunctionHelper } from "./helpers";
+import { IHandlerHelper, rangeFunctionHelper } from "./helpers";
 import { eachHelper } from "./helpers";
 import { ifHelper } from "./helpers";
 import { commentHelper } from "./helpers";
@@ -35,7 +35,7 @@ export class JSONTemplateEngine {
     this.registerFunctionHelper("#range", rangeFunctionHelper);
   }
 
-  registerHelper(directive: string, handler: any): void {
+  registerHelper(directive: string, handler: IHandlerHelper): void {
     if (directive in this._helpers) {
       throw new errors.JSONTemplateEngineBaseError(`${directive} already exist.`);
     }
@@ -127,7 +127,7 @@ export class JSONTemplateEngine {
     if (!("outputs" in template)) {
       throw new errors.JSONTemplateEngineBaseError(`Outputs not found. Path: ${newPath}`);
     }
-    const inputs = await this.parse(template.inputs, data, newPath);
+    const inputs = await this.parse(template.inputs, data, newPath, ...args);
     return await this._helpers[template[this.keyHelper]](
       inputs,
       template.outputs,
